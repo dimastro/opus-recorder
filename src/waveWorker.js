@@ -99,6 +99,17 @@ WavePCM.prototype.requestData = function(){
   return {message: 'page', page: wav};
 };
 
+WavePCM.prototype.requestDataWithoutHeader = function(){
+  var bufferLength = this.recordedBuffers[0].length;
+  var wav = new Uint8Array( bufferLength );
+
+
+  for (var i = 0; i < this.recordedBuffers.length; i++ ) {
+    wav.set( this.recordedBuffers[i], i * bufferLength );
+  }
+
+  return {message: 'postBuffer', buffer: wav};
+};
 
 // Run in AudioWorkletGlobal scope
 if (typeof registerProcessor === 'function') {
@@ -126,6 +137,13 @@ if (typeof registerProcessor === 'function') {
           case 'init':
             this.recorder = new WavePCM( data );
             this.port.postMessage( {message: 'ready'} );
+            break;
+
+          case 'getBuffer':
+            if (this.recorder) {
+              this.postPage(this.recorder.requestDataWithoutHeader());
+              // this.port.postMessage( {message: 'buffer'} );
+            }
             break;
 
           default:
@@ -177,6 +195,13 @@ else {
           recorder = null;
         }
         break;
+
+      case 'getBuffer':
+        if (recorder) {
+          postPageGlobal(recorder.requestDataWithoutHeader());
+        }
+        break;
+
 
       case 'close':
         close();
