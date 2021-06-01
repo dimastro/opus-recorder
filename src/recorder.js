@@ -29,7 +29,6 @@ var Recorder = function( config = {} ){
   }, config );
 
   this.encodedSamplePosition = 0;
-  this.streamBuffer = null;
   this.initAudioContext();
   this.initialize = this.initWorklet().then(() => this.initEncoder());
 };
@@ -138,6 +137,7 @@ Recorder.prototype.initSourceNode = function(){
 
 Recorder.prototype.initWorker = function(){
   var onPage = (this.config.streamPages ? this.streamPage : this.storePage).bind(this);
+  var onStreamBuffer = this.streamBuffer.bind(this);
 
   this.recordedPages = [];
   this.totalLength = 0;
@@ -154,7 +154,7 @@ Recorder.prototype.initWorker = function(){
           break;
         case 'postBuffer':
           // this.streamBuffer = data['buffer'];
-          this.streamPage(data['buffer']);
+          onStreamBuffer(data['buffer']);
           break;
         case 'done':
           this.encoder.removeEventListener( "message", callback );
@@ -303,7 +303,7 @@ Recorder.prototype.stop = function(){
 Recorder.prototype.getBuffer = function(){
   return new Promise(resolve => {
     var callback = ({ data }) => {
-      if ( data["message"] === 'getBuffer' ) {
+      if ( data["message"] === 'postBuffer' ) {
         this.encoder.removeEventListener( "message", callback );
         resolve();
       }
@@ -330,6 +330,10 @@ Recorder.prototype.streamPage = function( page ) {
   this.ondataavailable( page );
 };
 
+Recorder.prototype.streamBuffer = function( buffer ) {
+  this.ongetbuffer( buffer );
+};
+
 Recorder.prototype.finish = function() {
   if( !this.config.streamPages ) {
     var outputData = new Uint8Array( this.totalLength );
@@ -346,6 +350,7 @@ Recorder.prototype.finish = function() {
 
 // Callback Handlers
 Recorder.prototype.ondataavailable = function(){};
+Recorder.prototype.ongetbuffer = function(){};
 Recorder.prototype.onpause = function(){};
 Recorder.prototype.onresume = function(){};
 Recorder.prototype.onstart = function(){};
