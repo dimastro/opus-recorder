@@ -29,6 +29,7 @@ var Recorder = function( config = {} ){
   }, config );
 
   this.encodedSamplePosition = 0;
+  this.streamBuffer = null;
   this.initAudioContext();
   this.initialize = this.initWorklet().then(() => this.initEncoder());
 };
@@ -150,6 +151,10 @@ Recorder.prototype.initWorker = function(){
         case 'page':
           this.encodedSamplePosition = data['samplePosition'];
           onPage(data['page']);
+          break;
+        case 'postBuffer':
+          // this.streamBuffer = data['buffer'];
+          this.streamPage(data['buffer']);
           break;
         case 'done':
           this.encoder.removeEventListener( "message", callback );
@@ -292,6 +297,27 @@ Recorder.prototype.stop = function(){
       this.encoder.postMessage({ command: "done" });
     });
   }
+  return Promise.resolve();
+};
+
+Recorder.prototype.getBuffer = function(){
+  return new Promise(resolve => {
+    var callback = ({ data }) => {
+      if ( data["message"] === 'getBuffer' ) {
+        this.encoder.removeEventListener( "message", callback );
+        resolve();
+      }
+    };
+
+    this.encoder.addEventListener( "message", callback );
+
+    // must call start for messagePort messages
+    if( this.encoder.start ) {
+      this.encoder.start()
+    }
+
+    this.encoder.postMessage({ command: "getBuffer" });
+  });
   return Promise.resolve();
 };
 
