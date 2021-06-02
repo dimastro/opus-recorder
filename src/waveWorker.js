@@ -72,6 +72,9 @@ WavePCM.prototype.record = function( buffers ){
 };
 
 WavePCM.prototype.requestData = function(){
+  if (this.recordedBuffers.length == 0) {
+    return;
+  }
   var bufferLength = this.recordedBuffers[0].length;
   var dataLength = this.recordedBuffers.length * bufferLength;
   var headerLength = 44;
@@ -186,6 +189,11 @@ else {
       postMessage( pageData, [pageData.page.buffer] );
     }
   }
+  var postBufferGlobal = (bufferData) => {
+    if (bufferData) {
+      postMessage( bufferData, [bufferData.buffer.buffer] );
+    }
+  }
 
   onmessage = ({ data }) => {
 
@@ -207,7 +215,7 @@ else {
 
       case 'getBuffer':
         if (recorder) {
-          postPageGlobal(recorder.requestDataWithoutHeader());
+          postBufferGlobal(recorder.requestDataWithoutHeader());
         }
         break;
 

@@ -331,7 +331,6 @@ Recorder.prototype.streamPage = function( page ) {
 
 Recorder.prototype.streamBuffer = function( buffer ) {
   this.ongetbuffer( buffer );
-  this.onstop();
 };
 
 Recorder.prototype.finish = function() {
