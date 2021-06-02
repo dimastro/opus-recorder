@@ -153,7 +153,6 @@ Recorder.prototype.initWorker = function(){
           onPage(data['page']);
           break;
         case 'postBuffer':
-          // this.streamBuffer = data['buffer'];
           onStreamBuffer(data['buffer']);
           break;
         case 'done':
@@ -332,6 +331,7 @@ Recorder.prototype.streamPage = function( page ) {
 
 Recorder.prototype.streamBuffer = function( buffer ) {
   this.ongetbuffer( buffer );
+  this.onstop();
 };
 
 Recorder.prototype.finish = function() {

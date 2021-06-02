@@ -100,13 +100,18 @@ WavePCM.prototype.requestData = function(){
 };
 
 WavePCM.prototype.requestDataWithoutHeader = function(){
+  if (this.recordedBuffers.length == 0) {
+    return;
+  }
   var bufferLength = this.recordedBuffers[0].length;
-  var wav = new Uint8Array( bufferLength );
+  var dataLength = this.recordedBuffers.length * bufferLength;
+  var wav = new Uint8Array( dataLength );
 
 
   for (var i = 0; i < this.recordedBuffers.length; i++ ) {
     wav.set( this.recordedBuffers[i], i * bufferLength );
   }
+  this.recordedBuffers = [];
 
   return {message: 'postBuffer', buffer: wav};
 };
@@ -141,7 +146,7 @@ if (typeof registerProcessor === 'function') {
 
           case 'getBuffer':
             if (this.recorder) {
-              this.postPage(this.recorder.requestDataWithoutHeader());
+              this.postBuffer(this.recorder.requestDataWithoutHeader());
               // this.port.postMessage( {message: 'buffer'} );
             }
             break;
@@ -162,6 +167,11 @@ if (typeof registerProcessor === 'function') {
     postPage(pageData) {
       if (pageData) {
         this.port.postMessage( pageData, [pageData.page.buffer] );
+      }
+    }
+    postBuffer(bufferData) {
+      if (bufferData) {
+        this.port.postMessage( bufferData, [bufferData.buffer.buffer] );
       }
     }
   }
