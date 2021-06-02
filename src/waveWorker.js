@@ -147,7 +147,6 @@ if (typeof registerProcessor === 'function') {
           case 'getBuffer':
             if (this.recorder) {
               this.postBuffer(this.recorder.requestDataWithoutHeader());
-              // this.port.postMessage( {message: 'buffer'} );
             }
             break;
 
